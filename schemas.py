@@ -11,8 +11,9 @@ Model name is converted to lowercase for the collection name:
 - BlogPost -> "blogs" collection
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
+from datetime import datetime
 
 # Example schemas (replace with your own):
 
@@ -38,11 +39,25 @@ class Product(BaseModel):
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+# Identity & Compliance module schemas
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class OtpSession(BaseModel):
+    """
+    OTP sessions for phone verification (MFA)
+    Collection name: "otpsession"
+    """
+    phone: str = Field(..., description="MSISDN in international format e.g., +2250700000000")
+    code: str = Field(..., min_length=4, max_length=6, description="One-time passcode")
+    expires_at: datetime = Field(..., description="Expiration timestamp (UTC)")
+    verified: bool = Field(False, description="Whether the OTP was verified")
+
+class Identity(BaseModel):
+    """
+    Registered identities (basic KYC)
+    Collection name: "identity"
+    """
+    phone: str = Field(..., description="MSISDN in international format e.g., +2250700000000")
+    name: str = Field(..., description="Full name as per ID")
+    email: EmailStr = Field(..., description="Contact email")
+    country: Optional[str] = Field(None, description="ISO country code (e.g., CI, SN, BJ)")
+    faith_affirmation: bool = Field(..., description="Affirms adherence to platform values")
